@@ -34,6 +34,13 @@ mod correct_misc {
         });
         expect_success(src, &expected);
     }
+
+    #[test]
+    fn empty() {
+        let src = include_str!("sample_code/correct_misc/empty.yscl");
+        let expected = yscl_node!({});
+        expect_success(src, &expected);
+    }
 }
 
 mod incorrect_misc {
