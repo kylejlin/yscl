@@ -184,3 +184,25 @@ mod multiple_elements_per_line {
         expect_success(src, &expected);
     }
 }
+
+mod multiple_entries_per_line {
+    use super::*;
+
+    #[ignore]
+    #[test]
+    fn wrong() {
+        let src = include_str!(
+            "sample_code/patterns_and_antipatterns/multiple_entries_per_line/wrong.yscl"
+        );
+        expect_unexpected_char_err(src, 'l');
+    }
+
+    #[test]
+    fn right() {
+        let src = include_str!(
+            "sample_code/patterns_and_antipatterns/multiple_entries_per_line/right.yscl"
+        );
+        let expected = yscl_node!({ foo = "bar", lorem = "ipsum" });
+        expect_success(src, &expected);
+    }
+}
