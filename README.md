@@ -12,4 +12,9 @@ Please read [CRASH_COURSE.md](./learn/CRASH_COURSE.md).
 
 ## Parser implementations
 
-TODO: Add link to `yscl-rs` on crates.io (once it's published).
+- Rust: [yscl-rs](https://crates.io/crates/yscl)
+- TypeScript/JavaScript: Coming soon...maybe (depends on demand). If someone is interested, let me know. Open an [issue](https://github.com/kylejlin/yscl/issues/new), and I will be happy to help you.
+- Same goes for Go, C++, Java, Ruby, Python, etc.
+- If you implemented a parser yourself, that would be even better!
+  You can open an [issue](https://github.com/kylejlin/yscl/issues/new) and I will a link to this list.
+  I will also add you to the contributors list (which currently doesn't exist since it's just me 😀).
