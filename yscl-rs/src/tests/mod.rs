@@ -206,3 +206,48 @@ mod multiple_entries_per_line {
         expect_success(src, &expected);
     }
 }
+
+mod oneliner {
+    use super::*;
+
+    #[ignore]
+    #[test]
+    fn wrong_element() {
+        let src = include_str!("sample_code/patterns_and_antipatterns/oneliner/wrong_element.yscl");
+        expect_unexpected_char_err(src, '"');
+    }
+
+    #[ignore]
+    #[test]
+    fn wrong_entry() {
+        let src = include_str!("sample_code/patterns_and_antipatterns/oneliner/wrong_entry.yscl");
+        expect_unexpected_char_err(src, 'i');
+    }
+
+    #[ignore]
+    #[test]
+    fn wrong_r_curly() {
+        let src = include_str!("sample_code/patterns_and_antipatterns/oneliner/wrong_r_curly.yscl");
+        expect_unexpected_char_err(src, '}');
+    }
+
+    #[ignore]
+    #[test]
+    fn wrong_r_square() {
+        let src =
+            include_str!("sample_code/patterns_and_antipatterns/oneliner/wrong_r_square.yscl");
+        expect_unexpected_char_err(src, ']');
+    }
+
+    #[test]
+    fn right() {
+        let src = include_str!("sample_code/patterns_and_antipatterns/oneliner/right.yscl");
+        let expected = yscl_node!({
+            lorem = {
+                ipsum = "dolor"
+            },
+            foo = ["bar"]
+        });
+        expect_success(src, &expected);
+    }
+}
