@@ -9,7 +9,6 @@ use assert::*;
 #[test]
 fn hello_world() {
     let src = include_str!("sample_code/correct/hello_world.yscl");
-
     let expected = map! {
         "kantu_version" = atom!("1.0.0"),
         "dependencies" = map! {
