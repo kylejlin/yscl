@@ -3,33 +3,65 @@ use crate::*;
 mod assert;
 use assert::*;
 
-#[test]
-fn hello_world() {
-    let src = include_str!("sample_code/correct_misc/hello_world.yscl");
-    let expected = yscl_node! ({
-        kantu_version = "1.0.0",
-        dependencies = {
-            foo = "2.0.3",
-            bar = "bar",
-            lorem = {
-                url = "https://github.com/kylejlin/nonexistent_repo"
-            }
-        },
-        licenses = [
-            "MIT",
-            "APACHE",
-            {
-                url = "https://github.com/kylejlin/nonexistent_repo/CUSTOM_LICENSE"
-            }
-        ],
-        sequences = [
-            "\"",
-            "\\",
-            "\n",
-            "\u{263A}"
-        ]
-    });
-    expect_success(src, &expected);
+mod correct_misc {
+    use super::*;
+
+    #[test]
+    fn hello_world() {
+        let src = include_str!("sample_code/correct_misc/hello_world.yscl");
+        let expected = yscl_node! ({
+            kantu_version = "1.0.0",
+            dependencies = {
+                foo = "2.0.3",
+                bar = "bar",
+                lorem = {
+                    url = "https://github.com/kylejlin/nonexistent_repo"
+                }
+            },
+            licenses = [
+                "MIT",
+                "APACHE",
+                {
+                    url = "https://github.com/kylejlin/nonexistent_repo/CUSTOM_LICENSE"
+                }
+            ],
+            sequences = [
+                "\"",
+                "\\",
+                "\n",
+                "\u{263A}"
+            ]
+        });
+        expect_success(src, &expected);
+    }
+}
+
+mod incorrect_misc {
+    use super::*;
+
+    #[test]
+    fn leading_eq() {
+        let src = include_str!("sample_code/incorrect_misc/leading_eq.yscl");
+        expect_unexpected_char_err(src, '=');
+    }
+
+    #[test]
+    fn id_eq_eq() {
+        let src = include_str!("sample_code/incorrect_misc/id_eq_eq.yscl");
+        expect_unexpected_char_err(src, '=');
+    }
+
+    #[test]
+    fn id_id() {
+        let src = include_str!("sample_code/incorrect_misc/id_id.yscl");
+        expect_unexpected_char_err(src, 'b');
+    }
+
+    #[test]
+    fn id_eq_id() {
+        let src = include_str!("sample_code/incorrect_misc/id_eq_id.yscl");
+        expect_unexpected_char_err(src, 'b');
+    }
 }
 
 mod code_comment_same_line {
