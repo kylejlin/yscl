@@ -1,5 +1,16 @@
 use crate::tree::*;
 
+mod non_whitespace_tracker;
+use non_whitespace_tracker::*;
+
+mod reduce;
+use reduce::*;
+
+mod unfinished;
+use unfinished::*;
+
+const REDUCE_SHOULD_SUCCEED_MSG: &str = "Reduce should never fail, since we only ever push a node to the stack when the item under it is ready for it.";
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ParseError {
     /// The character and its byte position.
@@ -26,7 +37,7 @@ pub fn parse(src: &str) -> Result<Map, ParseError> {
                     });
                     stack.pop().unwrap();
                     if let Some(return_val) =
-                        reduce(&mut stack, top).expect(REDUCE_SHOULD_SUCCEED_MSG)
+                        reduce_stack(&mut stack, top).expect(REDUCE_SHOULD_SUCCEED_MSG)
                     {
                         return Ok(return_val);
                     }
@@ -78,49 +89,6 @@ pub fn parse(src: &str) -> Result<Map, ParseError> {
                 _other_char => atom_value.push(c),
             },
 
-            Unfinished::List(UnfinishedList { elements }) => match c {
-                ']' if remaining.non_whitespace_on_current_line() == 1 || elements.is_empty() => {
-                    let top = Node::List(List {
-                        elements: elements.clone(),
-                    });
-                    stack.pop().unwrap();
-                    if let Some(return_val) =
-                        reduce(&mut stack, top).expect(REDUCE_SHOULD_SUCCEED_MSG)
-                    {
-                        return Ok(return_val);
-                    }
-                }
-                '"' if remaining.non_whitespace_on_current_line() == 1 => {
-                    stack.push(Unfinished::AtomValue("".to_string()));
-                }
-                '{' if remaining.non_whitespace_on_current_line() == 1 => {
-                    stack.push(Unfinished::Map(UnfinishedMap {
-                        entries: vec![],
-                        pending_entry: UnfinishedMapEntry::empty(),
-                    }));
-                }
-                '[' if remaining.non_whitespace_on_current_line() == 1 => {
-                    stack.push(Unfinished::List(UnfinishedList { elements: vec![] }));
-                }
-                '/' if remaining.non_whitespace_on_current_line() == 1 => {
-                    let Some((next_i, next_c)) = remaining.next() else {
-                        return unexpected_eoi_err;
-                    };
-                    match next_c {
-                        '/' => {
-                            while let Some((_, next_c)) = remaining.next() {
-                                if next_c == '\n' {
-                                    break;
-                                }
-                            }
-                        }
-                        _ => return Err(ParseError::UnexpectedChar(next_c, next_i)),
-                    }
-                }
-                c if c.is_whitespace() => {}
-                _ => return Err(ParseError::UnexpectedChar(c, i)),
-            },
-
             Unfinished::Map(UnfinishedMap {
                 entries,
                 pending_entry,
@@ -134,7 +102,7 @@ pub fn parse(src: &str) -> Result<Map, ParseError> {
                     });
                     stack.pop().unwrap();
                     if let Some(return_val) =
-                        reduce(&mut stack, top).expect(REDUCE_SHOULD_SUCCEED_MSG)
+                        reduce_stack(&mut stack, top).expect(REDUCE_SHOULD_SUCCEED_MSG)
                     {
                         return Ok(return_val);
                     }
@@ -232,6 +200,49 @@ pub fn parse(src: &str) -> Result<Map, ParseError> {
                 }
                 _ => return Err(ParseError::UnexpectedChar(c, i)),
             },
+
+            Unfinished::List(UnfinishedList { elements }) => match c {
+                ']' if remaining.non_whitespace_on_current_line() == 1 || elements.is_empty() => {
+                    let top = Node::List(List {
+                        elements: elements.clone(),
+                    });
+                    stack.pop().unwrap();
+                    if let Some(return_val) =
+                        reduce_stack(&mut stack, top).expect(REDUCE_SHOULD_SUCCEED_MSG)
+                    {
+                        return Ok(return_val);
+                    }
+                }
+                '"' if remaining.non_whitespace_on_current_line() == 1 => {
+                    stack.push(Unfinished::AtomValue("".to_string()));
+                }
+                '{' if remaining.non_whitespace_on_current_line() == 1 => {
+                    stack.push(Unfinished::Map(UnfinishedMap {
+                        entries: vec![],
+                        pending_entry: UnfinishedMapEntry::empty(),
+                    }));
+                }
+                '[' if remaining.non_whitespace_on_current_line() == 1 => {
+                    stack.push(Unfinished::List(UnfinishedList { elements: vec![] }));
+                }
+                '/' if remaining.non_whitespace_on_current_line() == 1 => {
+                    let Some((next_i, next_c)) = remaining.next() else {
+                        return unexpected_eoi_err;
+                    };
+                    match next_c {
+                        '/' => {
+                            while let Some((_, next_c)) = remaining.next() {
+                                if next_c == '\n' {
+                                    break;
+                                }
+                            }
+                        }
+                        _ => return Err(ParseError::UnexpectedChar(next_c, next_i)),
+                    }
+                }
+                c if c.is_whitespace() => {}
+                _ => return Err(ParseError::UnexpectedChar(c, i)),
+            },
         }
     }
 
@@ -255,123 +266,6 @@ pub fn parse(src: &str) -> Result<Map, ParseError> {
     }
 }
 
-#[derive(Debug, Clone)]
-struct NonWhiteSpaceTracker<I> {
-    iter: I,
-    non_whitespace_on_current_line: usize,
-}
-
-impl<I> NonWhiteSpaceTracker<I> {
-    pub fn non_whitespace_on_current_line(&self) -> usize {
-        self.non_whitespace_on_current_line
-    }
-}
-
-fn wrap_in_non_whitespace_tracker<I: Iterator<Item = (usize, char)>>(
-    iter: I,
-) -> NonWhiteSpaceTracker<I> {
-    NonWhiteSpaceTracker {
-        iter,
-        non_whitespace_on_current_line: 0,
-    }
-}
-
-impl<I> Iterator for NonWhiteSpaceTracker<I>
-where
-    I: Iterator<Item = (usize, char)>,
-{
-    type Item = (usize, char);
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let Some((i, c)) = self.iter.next() else {
-            return None;
-        };
-        if c == '\n' {
-            self.non_whitespace_on_current_line = 0;
-        } else if !c.is_whitespace() {
-            self.non_whitespace_on_current_line += 1;
-        }
-
-        Some((i, c))
-    }
-}
-
-fn reduce(stack: &mut Vec<Unfinished>, top: Node) -> Result<Option<Map>, ()> {
-    match stack.last_mut() {
-        None => match top {
-            Node::Map(top) => Ok(Some(top)),
-            _ => Err(()),
-        },
-        Some(Unfinished::AtomValue(_)) => Err(()),
-        Some(Unfinished::List(UnfinishedList { elements })) => {
-            elements.push(top);
-            Ok(None)
-        }
-        Some(Unfinished::Map(UnfinishedMap {
-            entries,
-            pending_entry,
-        })) => {
-            if pending_entry.has_equal {
-                entries.push(MapEntry {
-                    key: Identifier::new(pending_entry.key.clone())
-                        .expect("Pending key should always be valid"),
-                    value: top,
-                });
-
-                *pending_entry = UnfinishedMapEntry::empty();
-
-                Ok(None)
-            } else {
-                Err(())
-            }
-        }
-    }
-}
-
 fn is_identifier_char(c: char) -> bool {
     c.is_alphanumeric() || c == '_'
-}
-
-const REDUCE_SHOULD_SUCCEED_MSG: &str = "Reduce should never fail, since we only ever push a node to the stack when the item under it is ready for it.";
-
-use unfinished::*;
-mod unfinished {
-    use crate::tree as finished;
-
-    #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-    pub enum Unfinished {
-        AtomValue(String),
-        List(UnfinishedList),
-        Map(UnfinishedMap),
-    }
-
-    #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-    pub struct UnfinishedList {
-        pub elements: Vec<finished::Node>,
-    }
-
-    #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-    pub struct UnfinishedMap {
-        pub entries: Vec<finished::MapEntry>,
-        pub pending_entry: UnfinishedMapEntry,
-    }
-
-    #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-    pub struct UnfinishedMapEntry {
-        pub key: String,
-        pub key_start_byte_index: Option<usize>,
-        pub has_space_after_key: bool,
-        pub has_equal: bool,
-    }
-
-    impl UnfinishedMapEntry {
-        pub fn empty() -> Self {
-            Self {
-                key: "".to_string(),
-                key_start_byte_index: None,
-                has_space_after_key: false,
-                has_equal: false,
-            }
-        }
-    }
 }
