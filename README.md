@@ -11,6 +11,18 @@ Example:
 ```yscl
 name = "hangman"
 version = "1.0.0"
+dependencies = {
+    random = "2.0.4"
+    left_pad = "1.2.0"
+}
+licenses = [
+    "MIT"
+    "APACHE-2.0"
+    {
+        name = "Custom license"
+        url = "https://github.com/kyljelin/nonexistent_repo/dummy_url.txt"
+    }
+]
 ```
 
 ## Why YSCL?
