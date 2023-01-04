@@ -1,28 +1,33 @@
 // Hi, I'm a comment! I start with two slashes.
 // I am ignored by the parser.
 // I must go at the beginning of a line
-       // (leading whitespace is permitted, however).
+   // (leading whitespace is permitted, however).
 
-// This is an entry. Every file has zero or more of them.
+
+
+
+// Below is an entry. Every file has zero or more of them.
 kantu_version = "1.0.0"
 
 // Every entry has a _key_ and a _value_
 //
 // A key is one or more (ASCII) letters, digits, or underscores.
 //
-// The value can be...
+// The value can be any YSCL expression.
+// That is, it can be any of the following:
 //
-// 1. A string, like you saw above ("1.0.0")
+// 1. A string (for example, the "1.0.0" you saw above)
 // 2. A map (explained later)
 // 3. A list (explained later)
 
-// This is a map.
+
+
+
+// Below is a map.
 // A map is a sequence of entries enclosed in curly braces (`{}`)
 dependencies = {
     foo = "2.0.3"
     bar = "bar"
-    // Duplicate keys are permitted
-    bar = "baz"
     lorem = {
         url = "https://github.com/kylejlin/nonexistent_repo"
     }
@@ -30,17 +35,25 @@ dependencies = {
     // Note: There can only be one entry per line.
 }
 
-// This is a list.
-// A list is a sequence of values enclosed in square brackets (`[]`)
+
+
+
+// Below is a list.
+// A list is a sequence of elements enclosed in square brackets (`[]`).
 licenses = [
     "MIT"
+    // Elements are separated by newlines.
     "APACHE"
+    // Elements can be any YSCL expression.
     {
         url = "https://github.com/kylejlin/nonexistent_repo/CUSTOM_LICENSE"
     }
 
-    // Note: There can only be one value per line.
+    // Note: There can only be one element per line.
 ]
+
+
+
 
 // There are 4 supported string escape sequences:
 sequences = [
@@ -55,5 +68,5 @@ sequences = [
 
   // Arbitrary Unicode Scalar Value
   "\u00263A"
-  // You can replace `00263A` with any 6 hexadecimal characters.
+  // You can replace `u00263A` with any 6 hexadecimal characters.
 ]

@@ -1,0 +1,4 @@
+foo = "bar"
+// This comment is legal
+     // So is this one, although its indentation is strange.
+     

@@ -192,7 +192,7 @@ license = "MIT"
 license = "APACHE"
 ```
 
-### RIGHT
+### RIGHT: ?
 
 There isn't a one-size-fits-all solution for this.
 The best solution will depend on what your goal is.
@@ -220,6 +220,20 @@ jane_doe = {
 taro_yamada = {
     age = "24"
 }
+```
+
+### WRONG: Comments on the same line as code
+
+```yscl
+foo = "bar" // Illegal comment
+```
+
+### RIGHT: Comments on their own line
+
+```yscl
+foo = "bar"
+// This comment is legal
+     // So is this one, although its indentation is strange.
 ```
 
 ## Parser implementations
