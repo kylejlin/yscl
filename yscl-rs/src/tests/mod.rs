@@ -251,3 +251,25 @@ mod oneliner {
         expect_success(src, &expected);
     }
 }
+
+mod surrogate_code_point {
+    use super::*;
+
+    #[test]
+    fn wrong_element() {
+        let src =
+            include_str!("sample_code/patterns_and_antipatterns/surrogate_code_point/wrong.yscl");
+        expect_unexpected_char_err(src, 'D');
+    }
+
+    #[test]
+    fn right() {
+        let src =
+            include_str!("sample_code/patterns_and_antipatterns/surrogate_code_point/right.yscl");
+        let expected = yscl_node!({
+            foo = "\u{01f60a}",
+            foo2 = "😊"
+        });
+        expect_success(src, &expected);
+    }
+}

@@ -2,4 +2,4 @@ foo = "\u01f60a"
 
 // For this specific case, you could just directly write
 // the value without escaping--that is,
-foo = "😊"
+foo2 = "😊"
