@@ -92,7 +92,6 @@ mod duplicate_keys {
 mod leading_digit {
     use super::*;
 
-    #[ignore]
     #[test]
     fn wrong_leading() {
         let src =
@@ -100,7 +99,6 @@ mod leading_digit {
         expect_unexpected_char_err(src, '0');
     }
 
-    #[ignore]
     #[test]
     fn wrong_singleton() {
         let src = include_str!(
@@ -166,7 +164,6 @@ mod multi_line_entry {
 mod multiple_elements_per_line {
     use super::*;
 
-    #[ignore]
     #[test]
     fn wrong() {
         let src = include_str!(

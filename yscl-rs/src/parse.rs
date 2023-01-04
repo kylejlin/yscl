@@ -83,7 +83,7 @@ pub fn parse(src: &str) -> Result<Map, ParseError> {
             },
 
             Unfinished::List(UnfinishedList { elements }) => match c {
-                ']' => {
+                ']' if remaining.non_whitespace_on_current_line() == 1 || elements.is_empty() => {
                     let top = Node::List(List {
                         elements: elements.clone(),
                     });
@@ -94,10 +94,10 @@ pub fn parse(src: &str) -> Result<Map, ParseError> {
                         return Ok(return_val);
                     }
                 }
-                '"' => {
+                '"' if remaining.non_whitespace_on_current_line() == 1 => {
                     stack.push(Unfinished::AtomValue("".to_string()));
                 }
-                '{' => {
+                '{' if remaining.non_whitespace_on_current_line() == 1 => {
                     stack.push(Unfinished::Map(UnfinishedMap {
                         entries: vec![],
                         pending_entry: UnfinishedMapEntry {
@@ -107,7 +107,7 @@ pub fn parse(src: &str) -> Result<Map, ParseError> {
                         },
                     }));
                 }
-                '[' => {
+                '[' if remaining.non_whitespace_on_current_line() == 1 => {
                     stack.push(Unfinished::List(UnfinishedList { elements: vec![] }));
                 }
                 '/' if remaining.non_whitespace_on_current_line() == 1 => {
@@ -133,7 +133,7 @@ pub fn parse(src: &str) -> Result<Map, ParseError> {
                 entries,
                 pending_entry,
             }) => match c {
-                '}' => {
+                '}' if remaining.non_whitespace_on_current_line() == 1 || entries.is_empty() => {
                     if !pending_entry.key.is_empty() {
                         return Err(ParseError::UnexpectedChar(c, i));
                     }
@@ -164,6 +164,11 @@ pub fn parse(src: &str) -> Result<Map, ParseError> {
                     }
                 }
                 c if is_identifier_char(c) => {
+                    // Leading digits are forbidden.
+                    if pending_entry.key.is_empty() && c.is_ascii_digit() {
+                        return Err(ParseError::UnexpectedChar(c, i));
+                    }
+
                     let can_push = !pending_entry.has_space_after_key && !pending_entry.has_equal;
                     if !can_push {
                         return Err(ParseError::UnexpectedChar(c, i));
