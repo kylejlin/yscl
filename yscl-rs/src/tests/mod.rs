@@ -1,8 +1,5 @@
 use crate::*;
 
-#[macro_use]
-mod macros;
-
 mod assert;
 use assert::*;
 

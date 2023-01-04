@@ -1,3 +1,4 @@
+#[macro_export]
 macro_rules! yscl_node {
     ($value:literal) => {{
         use $crate::*;
