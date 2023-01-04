@@ -1,6 +1,6 @@
 # yscl-rs
 
-A fast and simple parser for [YSCL](https://github.com/kylejlin/yscl).
+An efficient, minimal parser for [YSCL](https://github.com/kylejlin/yscl).
 
 ## Example
 
