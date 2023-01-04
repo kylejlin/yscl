@@ -33,7 +33,7 @@ Of course, that can also be said of its competitors, so here are some comparison
 
 vs. JSON
 
-- JSON requires the entire file be enclose in `{}`
+- JSON requires the entire file be enclosed in `{}`
   - This effectively forces the indentation to start off at 1
     indent (in contrast to TOML or YML which start at 0 indents).
   - YSCL doesn't require this.
