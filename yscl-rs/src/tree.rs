@@ -1,4 +1,4 @@
-use std::ops::{Deref, DerefMut};
+use std::ops::Deref;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum Node {
@@ -45,16 +45,10 @@ impl From<Identifier> for String {
 }
 
 impl Deref for Identifier {
-    type Target = String;
+    type Target = str;
 
     fn deref(&self) -> &Self::Target {
         &self.0
-    }
-}
-
-impl DerefMut for Identifier {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
     }
 }
 

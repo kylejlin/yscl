@@ -106,7 +106,7 @@ fn write_commonality(
                         if left_entry.key != right_entry.key {
                             return Err(());
                         }
-                        out.push_str(&format!("\n{}{} = ", i1, left_entry.key.as_str()));
+                        out.push_str(&format!("\n{}{} = ", i1, &*left_entry.key));
                         write_commonality(
                             out,
                             &left_entry.value,
