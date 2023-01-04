@@ -82,10 +82,7 @@ pub fn parse(src: &str) -> Result<Map, ParseError> {
                 _other_char => atom_value.push(c),
             },
 
-            Unfinished::List(UnfinishedList {
-                elements,
-                needs_newline_before_next_element,
-            }) => match c {
+            Unfinished::List(UnfinishedList { elements }) => match c {
                 ']' => {
                     let top = Node::List(List {
                         elements: elements.clone(),
@@ -96,9 +93,6 @@ pub fn parse(src: &str) -> Result<Map, ParseError> {
                     {
                         return Ok(return_val);
                     }
-                }
-                '\n' => {
-                    *needs_newline_before_next_element = false;
                 }
                 '"' => {
                     stack.push(Unfinished::AtomValue("".to_string()));
@@ -114,10 +108,7 @@ pub fn parse(src: &str) -> Result<Map, ParseError> {
                     }));
                 }
                 '[' => {
-                    stack.push(Unfinished::List(UnfinishedList {
-                        elements: vec![],
-                        needs_newline_before_next_element: true,
-                    }));
+                    stack.push(Unfinished::List(UnfinishedList { elements: vec![] }));
                 }
                 '/' if remaining.non_whitespace_on_current_line() == 1 => {
                     let Some((next_i, next_c)) = remaining.next() else {
@@ -202,10 +193,7 @@ pub fn parse(src: &str) -> Result<Map, ParseError> {
                     if !pending_entry.has_equal {
                         return Err(ParseError::UnexpectedChar(c, i));
                     }
-                    stack.push(Unfinished::List(UnfinishedList {
-                        elements: vec![],
-                        needs_newline_before_next_element: true,
-                    }));
+                    stack.push(Unfinished::List(UnfinishedList { elements: vec![] }));
                 }
                 '/' if remaining.non_whitespace_on_current_line() == 1 => {
                     let Some((next_i, next_c)) = remaining.next() else {
@@ -294,12 +282,8 @@ fn reduce(stack: &mut Vec<Unfinished>, top: Node) -> Result<Option<Map>, ()> {
             _ => Err(()),
         },
         Some(Unfinished::AtomValue(_)) => Err(()),
-        Some(Unfinished::List(UnfinishedList {
-            elements,
-            needs_newline_before_next_element,
-        })) => {
+        Some(Unfinished::List(UnfinishedList { elements })) => {
             elements.push(top);
-            *needs_newline_before_next_element = true;
             Ok(None)
         }
         Some(Unfinished::Map(UnfinishedMap {
@@ -343,7 +327,6 @@ mod unfinished {
     #[derive(Clone, Debug, PartialEq, Eq, Hash)]
     pub struct UnfinishedList {
         pub elements: Vec<finished::Node>,
-        pub needs_newline_before_next_element: bool,
     }
 
     #[derive(Clone, Debug, PartialEq, Eq, Hash)]
