@@ -162,3 +162,25 @@ mod multi_line_entry {
         expect_success(src, &expected);
     }
 }
+
+mod multiple_elements_per_line {
+    use super::*;
+
+    #[ignore]
+    #[test]
+    fn wrong() {
+        let src = include_str!(
+            "sample_code/patterns_and_antipatterns/multiple_elements_per_line/wrong.yscl"
+        );
+        expect_unexpected_char_err(src, '"');
+    }
+
+    #[test]
+    fn right() {
+        let src = include_str!(
+            "sample_code/patterns_and_antipatterns/multiple_elements_per_line/right.yscl"
+        );
+        let expected = yscl_node!({ foo = ["bar", "baz"] });
+        expect_success(src, &expected);
+    }
+}
