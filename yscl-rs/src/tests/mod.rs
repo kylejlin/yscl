@@ -88,3 +88,31 @@ mod duplicate_keys {
         expect_success(src, &expected);
     }
 }
+
+mod leading_digit {
+    use super::*;
+
+    #[ignore]
+    #[test]
+    fn wrong_leading() {
+        let src =
+            include_str!("sample_code/patterns_and_antipatterns/leading_digit/wrong_leading.yscl");
+        expect_unexpected_char_err(src, '0');
+    }
+
+    #[ignore]
+    #[test]
+    fn wrong_singleton() {
+        let src = include_str!(
+            "sample_code/patterns_and_antipatterns/leading_digit/wrong_singleton.yscl"
+        );
+        expect_unexpected_char_err(src, '3');
+    }
+
+    #[test]
+    fn right() {
+        let src = include_str!("sample_code/patterns_and_antipatterns/leading_digit/right.yscl");
+        let expected = yscl_node!({ _3 = "foo", _0x = "bar" });
+        expect_success(src, &expected);
+    }
+}
