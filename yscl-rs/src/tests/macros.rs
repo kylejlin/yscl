@@ -1,45 +1,23 @@
-macro_rules! atom {
+macro_rules! yscl_node {
     ($value:literal) => {{
         use $crate::*;
         Node::Atom(Atom {
             value: $value.to_string(),
         })
     }};
-}
-
-macro_rules! map {
-    ($($key:ident = $value:expr),*) => {{
+    ({$($key:ident = $value:tt),*}) => {{
         use $crate::*;
         Node::Map(Map {
             entries: vec![$(MapEntry {
                 key: Identifier::new(stringify!($key).to_string()).expect("Invalid identifier name"),
-                value: $value,
+                value: yscl_node!($value),
             }),*],
         })
     }};
-}
-
-macro_rules! list {
-    ($($element:expr),*) => {{
+    ([$($element:tt),*]) => {{
         use $crate::*;
         Node::List(List {
-            elements: vec![$($element),*],
+            elements: vec![$(yscl_node!($element)),*],
         })
     }};
-}
-
-macro_rules! parse {
-    ($value:literal) => {
-        atom!($value)
-    };
-    ({$($key:ident = $value:tt),*}) => {
-        map! {
-            $($key = parse!($value)),*
-        }
-    };
-    ([$($element:tt),*]) => {
-        list! {
-            $(parse!($element)),*
-        }
-    };
 }
