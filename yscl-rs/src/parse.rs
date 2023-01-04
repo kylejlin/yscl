@@ -40,7 +40,8 @@ pub fn parse(src: &str) -> Result<Map, ParseError> {
                         return unexpected_eoi_err;
                     };
                     match c_after_backslash {
-                        '\\' | '"' | 'n' => atom_value.push(c_after_backslash),
+                        '\\' | '"' => atom_value.push(c_after_backslash),
+                        'n' => atom_value.push('\n'),
                         'u' => {
                             let mut hex = String::with_capacity(6);
                             for _ in 0..5 {
