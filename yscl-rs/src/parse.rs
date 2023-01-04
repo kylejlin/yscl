@@ -1,54 +1,15 @@
-use super::tree::*;
+use crate::tree::*;
 
-use unfinished::*;
-mod unfinished {
-    use super::super::tree as finished;
-
-    #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-    pub enum Unfinished {
-        AtomValue(String),
-        List(UnfinishedList),
-        Map(UnfinishedMap),
-    }
-
-    #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-    pub struct UnfinishedList {
-        pub elements: Vec<finished::Node>,
-        pub needs_newline_before_next_element: bool,
-    }
-
-    #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-    pub struct UnfinishedMap {
-        pub entries: Vec<finished::MapEntry>,
-        pub pending_entry: UnfinishedMapEntry,
-    }
-
-    #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-    pub struct UnfinishedMapEntry {
-        pub key: String,
-        pub has_space_after_key: bool,
-        pub has_equal: bool,
-    }
-
-    impl Default for UnfinishedMapEntry {
-        fn default() -> Self {
-            Self {
-                key: "".to_string(),
-                has_space_after_key: false,
-                has_equal: false,
-            }
-        }
-    }
-
-    impl UnfinishedMapEntry {
-        pub fn reset(&mut self) {
-            *self = Self::default();
-        }
-    }
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ParseError {
+    /// The character and its byte position.
+    UnexpectedChar(char, usize),
+    UnexpectedEoi,
+    DuplicateKey(String, usize),
 }
 
-pub fn parse(src: &str) -> Result<Map, usize> {
-    let unexpected_eoi_err = Err(src.len());
+pub fn parse(src: &str) -> Result<Map, ParseError> {
+    let unexpected_eoi_err = Err(ParseError::UnexpectedEoi);
     let mut stack = vec![Unfinished::Map(UnfinishedMap {
         entries: vec![],
         pending_entry: UnfinishedMapEntry {
@@ -62,9 +23,11 @@ pub fn parse(src: &str) -> Result<Map, usize> {
     while let Some((i, c)) = remaining.next() {
         match stack.last_mut().expect("Stack should never be empty") {
             Unfinished::AtomValue(atom_value) => match c {
-                '\n' => return Err(i),
+                '\n' => return Err(ParseError::UnexpectedChar(c, i)),
                 '"' => {
-                    let top = Node::Atom(AtomValue(atom_value.clone()));
+                    let top = Node::Atom(Atom {
+                        value: atom_value.clone(),
+                    });
                     stack.pop().unwrap();
                     if let Some(return_val) =
                         reduce(&mut stack, top).expect(REDUCE_SHOULD_SUCCEED_MSG)
@@ -73,30 +36,46 @@ pub fn parse(src: &str) -> Result<Map, usize> {
                     }
                 }
                 '\\' => {
-                    let Some((next_i, next_c)) = remaining.next() else {
+                    let Some((i_of_c_after_backslash, c_after_backslash)) = remaining.next() else {
                         return unexpected_eoi_err;
                     };
-                    match next_c {
-                        '\\' | '"' | 'n' => atom_value.push(next_c),
+                    match c_after_backslash {
+                        '\\' | '"' | 'n' => atom_value.push(c_after_backslash),
                         'u' => {
                             let mut hex = String::with_capacity(6);
-                            for _ in 0..6 {
-                                let Some((next_i, next_c)) = remaining.next() else {
+                            for _ in 0..5 {
+                                let Some((hex_i, hex_c)) = remaining.next() else {
                                     return unexpected_eoi_err;
                                 };
-                                if !next_c.is_ascii_hexdigit() {
-                                    return Err(next_i);
+                                if !hex_c.is_ascii_hexdigit() {
+                                    return Err(ParseError::UnexpectedChar(hex_c, hex_i));
                                 }
-                                hex.push(next_c);
+                                hex.push(hex_c);
                             }
+                            let (last_hex_i, last_hex_c) = if let Some((last_hex_i, last_hex_c)) =
+                                remaining.next()
+                            {
+                                if !last_hex_c.is_ascii_hexdigit() {
+                                    return Err(ParseError::UnexpectedChar(last_hex_c, last_hex_i));
+                                }
+                                hex.push(last_hex_c);
+                                (last_hex_i, last_hex_c)
+                            } else {
+                                return unexpected_eoi_err;
+                            };
                             let codepoint = u32::from_str_radix(&hex, 16)
                                 .expect("Hex code should always be valid");
                             let Some(encoded_char) = std::char::from_u32(codepoint) else {
-                                return Err(next_i + 6);
+                                return Err(ParseError::UnexpectedChar(last_hex_c, last_hex_i));
                             };
                             atom_value.push(encoded_char);
                         }
-                        _ => return Err(next_i),
+                        _ => {
+                            return Err(ParseError::UnexpectedChar(
+                                c_after_backslash,
+                                i_of_c_after_backslash,
+                            ))
+                        }
                     }
                 }
                 _other_char => atom_value.push(c),
@@ -151,11 +130,11 @@ pub fn parse(src: &str) -> Result<Map, usize> {
                                 }
                             }
                         }
-                        _ => return Err(next_i),
+                        _ => return Err(ParseError::UnexpectedChar(next_c, next_i)),
                     }
                 }
                 c if c.is_whitespace() => {}
-                _ => return Err(i),
+                _ => return Err(ParseError::UnexpectedChar(c, i)),
             },
 
             Unfinished::Map(UnfinishedMap {
@@ -164,7 +143,7 @@ pub fn parse(src: &str) -> Result<Map, usize> {
             }) => match c {
                 '}' => {
                     if !pending_entry.key.is_empty() {
-                        return Err(i);
+                        return Err(ParseError::UnexpectedChar(c, i));
                     }
                     let top = Node::Map(Map {
                         entries: entries.clone(),
@@ -178,12 +157,12 @@ pub fn parse(src: &str) -> Result<Map, usize> {
                 }
                 '\n' => {
                     if !pending_entry.key.is_empty() {
-                        return Err(i);
+                        return Err(ParseError::UnexpectedChar(c, i));
                     }
                 }
                 '=' => {
                     if pending_entry.has_equal {
-                        return Err(i);
+                        return Err(ParseError::UnexpectedChar(c, i));
                     }
                     pending_entry.has_equal = true;
                 }
@@ -195,19 +174,19 @@ pub fn parse(src: &str) -> Result<Map, usize> {
                 c if is_identifier_char(c) => {
                     let can_push = !pending_entry.has_space_after_key && !pending_entry.has_equal;
                     if !can_push {
-                        return Err(i);
+                        return Err(ParseError::UnexpectedChar(c, i));
                     }
                     pending_entry.key.push(c);
                 }
                 '"' => {
                     if !pending_entry.has_equal {
-                        return Err(i);
+                        return Err(ParseError::UnexpectedChar(c, i));
                     }
                     stack.push(Unfinished::AtomValue("".to_string()));
                 }
                 '{' => {
                     if !pending_entry.has_equal {
-                        return Err(i);
+                        return Err(ParseError::UnexpectedChar(c, i));
                     }
                     stack.push(Unfinished::Map(UnfinishedMap {
                         entries: vec![],
@@ -220,7 +199,7 @@ pub fn parse(src: &str) -> Result<Map, usize> {
                 }
                 '[' => {
                     if !pending_entry.has_equal {
-                        return Err(i);
+                        return Err(ParseError::UnexpectedChar(c, i));
                     }
                     stack.push(Unfinished::List(UnfinishedList {
                         elements: vec![],
@@ -239,10 +218,10 @@ pub fn parse(src: &str) -> Result<Map, usize> {
                                 }
                             }
                         }
-                        _ => return Err(next_i),
+                        _ => return Err(ParseError::UnexpectedChar(next_c, next_i)),
                     }
                 }
-                _ => return Err(i),
+                _ => return Err(ParseError::UnexpectedChar(c, i)),
             },
         }
     }
@@ -348,3 +327,50 @@ fn is_identifier_char(c: char) -> bool {
 }
 
 const REDUCE_SHOULD_SUCCEED_MSG: &str = "Reduce should never fail, since we only ever push a node to the stack when the item under it is ready for it.";
+
+use unfinished::*;
+mod unfinished {
+    use crate::tree as finished;
+
+    #[derive(Clone, Debug, PartialEq, Eq, Hash)]
+    pub enum Unfinished {
+        AtomValue(String),
+        List(UnfinishedList),
+        Map(UnfinishedMap),
+    }
+
+    #[derive(Clone, Debug, PartialEq, Eq, Hash)]
+    pub struct UnfinishedList {
+        pub elements: Vec<finished::Node>,
+        pub needs_newline_before_next_element: bool,
+    }
+
+    #[derive(Clone, Debug, PartialEq, Eq, Hash)]
+    pub struct UnfinishedMap {
+        pub entries: Vec<finished::MapEntry>,
+        pub pending_entry: UnfinishedMapEntry,
+    }
+
+    #[derive(Clone, Debug, PartialEq, Eq, Hash)]
+    pub struct UnfinishedMapEntry {
+        pub key: String,
+        pub has_space_after_key: bool,
+        pub has_equal: bool,
+    }
+
+    impl Default for UnfinishedMapEntry {
+        fn default() -> Self {
+            Self {
+                key: "".to_string(),
+                has_space_after_key: false,
+                has_equal: false,
+            }
+        }
+    }
+
+    impl UnfinishedMapEntry {
+        pub fn reset(&mut self) {
+            *self = Self::default();
+        }
+    }
+}
