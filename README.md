@@ -45,6 +45,7 @@ kantu_version = "1.0.0"
 dependencies = {
     foo = "2.0.3"
     bar = "bar"
+
     lorem = {
         url = "https://github.com/kylejlin/nonexistent_repo"
     }
