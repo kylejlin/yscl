@@ -1,6 +1,6 @@
 # Yet Another Simple Config Language (YSCL)
 
-YSCL (rhymes with "rascal") is a general purpose config language that
+YSCL (rhymes with "Haskell" and "rascal") is a general purpose config language that
 aims to be so simple that anyone can go
 from zero to absolute mastery in less than five minutes.
 
