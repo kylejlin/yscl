@@ -298,7 +298,9 @@ mod oneliner {
             lorem = {
                 ipsum = "dolor"
             },
-            foo = ["bar"]
+            foo = ["bar"],
+            empty_map = {},
+            empty_list = []
         });
         expect_success(src, &expected);
     }

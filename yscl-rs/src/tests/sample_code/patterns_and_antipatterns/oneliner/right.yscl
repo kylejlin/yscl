@@ -4,3 +4,6 @@ lorem = {
 foo = [
     "bar"
 ]
+
+empty_map = {}
+empty_list = []

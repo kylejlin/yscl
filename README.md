@@ -131,16 +131,13 @@ lorem = { ipsum = "dolor" }
 foo = ["bar"]
 ```
 
-The enclosing `{}` (or `[]`, respectively) must be on different lines
-than any entries (or elements, respectively) they enclose.
+Map entries must be on their own line--they cannot be on
+the same line as either of their enclosing curly braces (`{}`).
 
-In the above example:
+The same restriction applies to list elements and their
+enclosing square brackets (`[]`).
 
-- The entry `ipsum = "dolor"` is illegal because it is on the same line as the enclosing `{`
-- Likewise, the enclosing `}` is also illegal because it is on the same line as the entry `ipsum = "dolor"`
-- The element `"bar"` is illegal because it is on the same line as the enclosing `[`
-- Likewise, the enclosing `]` is also illegal because it is on the same line
-  as the element `bar`.
+There are no exceptions.
 
 ### RIGHT: Entries and elements on their own line
 
@@ -151,7 +148,20 @@ lorem = {
 foo = [
     "bar"
 ]
+
+empty_map = {}
+empty_list = []
 ```
+
+Observe that since _empty_ maps don't have any entries,
+they can be written on one line.
+
+Note that this is not an exception to the "one line per entry" rule,
+but rather a particular case of it.
+Since all zero entries are on their own line, the rule is
+vacuously satisfied.
+
+The same applies to empty lists.
 
 ### WRONG: Unicode surrogate code points in `\u` escapes
 
