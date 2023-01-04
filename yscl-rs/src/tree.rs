@@ -56,6 +56,12 @@ impl Identifier {
     ///
     /// Legal characters are ASCII letters (both uppercase and lowercase), digits, and the underscore.
     pub fn new(s: String) -> Result<Self, usize> {
+        if let Some(first) = s.chars().next() {
+            if first.is_ascii_digit() {
+                return Err(0);
+            }
+        }
+
         let bad_char_pos = s.char_indices().find_map(|(i, c)| {
             if c.is_ascii_alphanumeric() || c == '_' {
                 None

@@ -54,7 +54,6 @@ mod code_comment_same_line {
 mod duplicate_keys {
     use super::*;
 
-    #[ignore]
     #[test]
     fn wrong_nested() {
         let src =
@@ -62,7 +61,6 @@ mod duplicate_keys {
         expect_duplicate_key_char_err(src, "license");
     }
 
-    #[ignore]
     #[test]
     fn wrong_top_level() {
         let src = include_str!(

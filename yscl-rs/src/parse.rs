@@ -12,11 +12,7 @@ pub fn parse(src: &str) -> Result<Map, ParseError> {
     let unexpected_eoi_err = Err(ParseError::UnexpectedEoi);
     let mut stack = vec![Unfinished::Map(UnfinishedMap {
         entries: vec![],
-        pending_entry: UnfinishedMapEntry {
-            key: "".to_string(),
-            has_space_after_key: false,
-            has_equal: false,
-        },
+        pending_entry: UnfinishedMapEntry::empty(),
     })];
     let mut remaining = wrap_in_non_whitespace_tracker(src.char_indices());
 
@@ -100,11 +96,7 @@ pub fn parse(src: &str) -> Result<Map, ParseError> {
                 '{' if remaining.non_whitespace_on_current_line() == 1 => {
                     stack.push(Unfinished::Map(UnfinishedMap {
                         entries: vec![],
-                        pending_entry: UnfinishedMapEntry {
-                            key: "".to_string(),
-                            has_space_after_key: false,
-                            has_equal: false,
-                        },
+                        pending_entry: UnfinishedMapEntry::empty(),
                     }));
                 }
                 '[' if remaining.non_whitespace_on_current_line() == 1 => {
@@ -153,9 +145,21 @@ pub fn parse(src: &str) -> Result<Map, ParseError> {
                     }
                 }
                 '=' => {
+                    let Some(start) = pending_entry.key_start_byte_index else {
+                        return Err(ParseError::UnexpectedChar(c, i));
+                    };
+
+                    if entries
+                        .iter()
+                        .any(|existing_entry| *existing_entry.key == pending_entry.key)
+                    {
+                        return Err(ParseError::DuplicateKey(pending_entry.key.clone(), start));
+                    }
+
                     if pending_entry.has_equal {
                         return Err(ParseError::UnexpectedChar(c, i));
                     }
+
                     pending_entry.has_equal = true;
                 }
                 c if c.is_whitespace() => {
@@ -163,16 +167,14 @@ pub fn parse(src: &str) -> Result<Map, ParseError> {
                         pending_entry.has_space_after_key = true;
                     }
                 }
-                c if is_identifier_char(c) => {
+                c if is_identifier_char(c) && pending_entry.key.is_empty() => {
                     // Entries must be on their own line.
-                    if pending_entry.key.is_empty()
-                        && remaining.non_whitespace_on_current_line() != 1
-                    {
+                    if remaining.non_whitespace_on_current_line() != 1 {
                         return Err(ParseError::UnexpectedChar(c, i));
                     }
 
                     // Leading digits are forbidden.
-                    if pending_entry.key.is_empty() && c.is_ascii_digit() {
+                    if c.is_ascii_digit() {
                         return Err(ParseError::UnexpectedChar(c, i));
                     }
 
@@ -180,6 +182,16 @@ pub fn parse(src: &str) -> Result<Map, ParseError> {
                     if !can_push {
                         return Err(ParseError::UnexpectedChar(c, i));
                     }
+
+                    pending_entry.key_start_byte_index = Some(i);
+                    pending_entry.key.push(c);
+                }
+                c if is_identifier_char(c) => {
+                    let can_push = !pending_entry.has_space_after_key && !pending_entry.has_equal;
+                    if !can_push {
+                        return Err(ParseError::UnexpectedChar(c, i));
+                    }
+
                     pending_entry.key.push(c);
                 }
                 '"' => {
@@ -194,11 +206,7 @@ pub fn parse(src: &str) -> Result<Map, ParseError> {
                     }
                     stack.push(Unfinished::Map(UnfinishedMap {
                         entries: vec![],
-                        pending_entry: UnfinishedMapEntry {
-                            key: "".to_string(),
-                            has_space_after_key: false,
-                            has_equal: false,
-                        },
+                        pending_entry: UnfinishedMapEntry::empty(),
                     }));
                 }
                 '[' => {
@@ -236,6 +244,7 @@ pub fn parse(src: &str) -> Result<Map, ParseError> {
                 pending_entry:
                     UnfinishedMapEntry {
                         key,
+                        key_start_byte_index: _,
                         has_equal: _,
                         has_space_after_key: _,
                     },
@@ -309,7 +318,7 @@ fn reduce(stack: &mut Vec<Unfinished>, top: Node) -> Result<Option<Map>, ()> {
                     value: top,
                 });
 
-                pending_entry.reset();
+                *pending_entry = UnfinishedMapEntry::empty();
 
                 Ok(None)
             } else {
@@ -350,23 +359,19 @@ mod unfinished {
     #[derive(Clone, Debug, PartialEq, Eq, Hash)]
     pub struct UnfinishedMapEntry {
         pub key: String,
+        pub key_start_byte_index: Option<usize>,
         pub has_space_after_key: bool,
         pub has_equal: bool,
     }
 
-    impl Default for UnfinishedMapEntry {
-        fn default() -> Self {
+    impl UnfinishedMapEntry {
+        pub fn empty() -> Self {
             Self {
                 key: "".to_string(),
+                key_start_byte_index: None,
                 has_space_after_key: false,
                 has_equal: false,
             }
-        }
-    }
-
-    impl UnfinishedMapEntry {
-        pub fn reset(&mut self) {
-            *self = Self::default();
         }
     }
 }
