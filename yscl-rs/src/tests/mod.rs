@@ -62,6 +62,36 @@ mod incorrect_misc {
         let src = include_str!("sample_code/incorrect_misc/id_eq_id.yscl");
         expect_unexpected_char_err(src, 'b');
     }
+
+    #[test]
+    fn top_level_expr() {
+        let src = include_str!("sample_code/incorrect_misc/top_level_expr.yscl");
+        expect_unexpected_char_err(src, '"');
+    }
+
+    #[test]
+    fn incomplete_entry_id() {
+        let src = include_str!("sample_code/incorrect_misc/incomplete_entry_id.yscl");
+        expect_unexpected_eoi_err(src);
+    }
+
+    #[test]
+    fn incomplete_atom() {
+        let src = include_str!("sample_code/incorrect_misc/incomplete_atom.yscl");
+        expect_unexpected_eoi_err(src);
+    }
+
+    #[test]
+    fn newline_in_atom() {
+        let src = include_str!("sample_code/incorrect_misc/newline_in_atom.yscl");
+        expect_unexpected_char_err(src, '\n');
+    }
+
+    #[test]
+    fn incomplete_list() {
+        let src = include_str!("sample_code/incorrect_misc/incomplete_list.yscl");
+        expect_unexpected_eoi_err(src);
+    }
 }
 
 mod code_comment_same_line {

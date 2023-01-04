@@ -2,10 +2,48 @@ use super::*;
 
 const INDENT_INCREMENT: usize = 4;
 
-pub fn expect_success(src: &str, expected: &Node) {
+/// This is used to force the compiler to verify that all
+/// non-happy paths diverge.
+/// This is very useful for making sure we don't forget to panic
+/// when we should.
+///
+/// For example, consider this erroenous code:
+///
+/// ```rust
+/// fn custom_assert_eq(x: usize, y: usize) {
+///     if x == y {
+///         return;   
+///     }
+///
+///     // This shoud be "panic!", but the author made a typo.
+///     println!("Error: {} != {}", x, y);
+/// }
+/// ```
+///
+/// The non-happy path doesn't panic, but the compiler doesn't complain.
+/// To fix this, we use `Pass`:
+///
+/// ```rust
+/// fn custom_assert_eq(x: usize, y: usize) -> Pass {
+///     if x == y {
+///         return Pass;   
+///     }
+///
+///     // This shoud be "panic!", but the author made a typo.
+///     println!("Error: {} != {}", x, y);
+///
+///     // TYPE ERROR: Expected `Pass`, but got `()`.
+/// }
+/// ```
+///
+/// Now, the error is caught by the compiler.
+pub struct Pass;
+
+pub fn expect_success(src: &str, expected: &Node) -> Pass {
     match parse(src) {
         Ok(map) => {
             assert_node_eq(expected, &Node::Map(map));
+            Pass
         }
         Err(ParseError::UnexpectedChar(unexpected_c, unexpected_index)) => {
             let remaining = src
@@ -17,13 +55,13 @@ pub fn expect_success(src: &str, expected: &Node) {
                 unexpected_index, unexpected_c, remaining, src,
             );
         }
-        Err(err) => println!("Error: {:?}", err),
+        Err(err) => panic!("Error: {:?}", err),
     }
 }
 
-fn assert_node_eq(expected: &Node, actual: &Node) {
+fn assert_node_eq(expected: &Node, actual: &Node) -> Pass {
     if expected == actual {
-        return;
+        return Pass;
     }
 
     panic!(
@@ -109,7 +147,7 @@ fn format(node: &Node) -> String {
     get_commonality(node, node)
 }
 
-pub fn expect_unexpected_char_err(src: &str, expected_c: char) {
+pub fn expect_unexpected_char_err(src: &str, expected_c: char) -> Pass {
     match parse(src) {
         Ok(map) => {
             panic!(
@@ -129,12 +167,26 @@ pub fn expect_unexpected_char_err(src: &str, expected_c: char) {
                 actual_index,
                 src,
             );
+            Pass
         }
-        Err(err) => println!("Got a different error than expected: {:?}", err),
+        Err(err) => panic!("Got a different error than expected: {:?}", err),
     }
 }
 
-pub fn expect_duplicate_key_char_err(src: &str, expected_key: &str) {
+pub fn expect_unexpected_eoi_err(src: &str) -> Pass {
+    match parse(src) {
+        Ok(map) => {
+            panic!(
+                "Expected error, but unexpectedly parsed successfully. Map:\n\n{}",
+                format(&Node::Map(map))
+            )
+        }
+        Err(ParseError::UnexpectedEoi) => Pass,
+        Err(err) => panic!("Got a different error than expected: {:?}", err),
+    }
+}
+
+pub fn expect_duplicate_key_char_err(src: &str, expected_key: &str) -> Pass {
     match parse(src) {
         Ok(map) => {
             panic!(
@@ -156,7 +208,8 @@ pub fn expect_duplicate_key_char_err(src: &str, expected_key: &str) {
                 actual_index,
                 src,
             );
+            Pass
         }
-        Err(err) => println!("Got a different error than expected: {:?}", err),
+        Err(err) => panic!("Got a different error than expected: {:?}", err),
     }
 }

@@ -33,7 +33,8 @@ kantu_version = "1.0.0"
 // The value can be any YSCL expression.
 // That is, it can be any of the following:
 //
-// 1. A string (for example, the "1.0.0" you saw above)
+// 1. A string (for example, the "1.0.0" you saw above).
+//    Strings are also called atoms.
 // 2. A map (explained later)
 // 3. A list (explained later)
 
