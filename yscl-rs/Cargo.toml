@@ -2,3 +2,7 @@
 name = "yscl"
 version = "1.0.0"
 edition = "2021"
+authors = ["Kyle Lin <kylejlin.us@gmail.com>"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/kylejlin/yscl/tree/main/yscl-rs"
+description = "A YSCL parser."
