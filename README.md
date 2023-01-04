@@ -24,7 +24,11 @@ kantu_version = "1.0.0"
 
 // Every entry has a _key_ and a _value_
 //
-// A key is one or more (ASCII) letters, digits, or underscores.
+// The key must be an _identifier_.
+// An identifier contains one or more
+// (ASCII) letters (uppercase or lowercase),
+// digits, or underscores.
+// It cannot begin with a digit.
 //
 // The value can be any YSCL expression.
 // That is, it can be any of the following:
