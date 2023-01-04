@@ -1,0 +1,6 @@
+projects = [
+    {
+        license = "MIT"
+        license = "APACHE"
+    }
+]
