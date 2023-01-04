@@ -117,7 +117,46 @@ pub fn expect_unexpected_char_err(src: &str, expected_c: char) {
                 format(&Node::Map(map))
             )
         }
-        Err(ParseError::UnexpectedChar(actual_c, _)) => assert_eq!(expected_c, actual_c),
+        Err(ParseError::UnexpectedChar(actual_c, actual_index)) => {
+            assert_eq!(expected_c, actual_c);
+            let actual =
+                src.char_indices()
+                    .find_map(|(i, c)| if i == actual_index { Some(c) } else { None });
+            assert_eq!(
+                Some(expected_c),
+                actual,
+                "Index {} does not match.\n\nsrc = {:?}",
+                actual_index,
+                src,
+            );
+        }
+        Err(err) => println!("Got a different error than expected: {:?}", err),
+    }
+}
+
+pub fn expect_duplicate_key_char_err(src: &str, expected_key: &str) {
+    match parse(src) {
+        Ok(map) => {
+            panic!(
+                "Expected error, but unexpectedly parsed successfully. Map:\n\n{}",
+                format(&Node::Map(map))
+            )
+        }
+        Err(ParseError::DuplicateKey(actual_key, actual_index)) => {
+            assert_eq!(expected_key, actual_key);
+            let actual: String = src
+                .char_indices()
+                .filter_map(|(i, c)| if i >= actual_index { Some(c) } else { None })
+                .take(expected_key.chars().count())
+                .collect();
+            assert_eq!(
+                expected_key,
+                actual.as_str(),
+                "Index {} does not match.\n\nsrc = {:?}",
+                actual_index,
+                src,
+            );
+        }
         Err(err) => println!("Got a different error than expected: {:?}", err),
     }
 }
