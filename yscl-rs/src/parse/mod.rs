@@ -119,10 +119,6 @@ pub enum ParseError {
 ///
 /// assert_eq!(expected, map);
 /// ```
-///
-/// This function is primarily intended for parsing YSCL files at runtime.
-/// If you want to create a YSCL node at compile time, you should generally
-/// use the [`yscl_node!`] macro instead.
 pub fn parse_doc(src: &str) -> Result<Map, ParseError> {
     let mut stack = vec![Unfinished::Map(UnfinishedMap {
         entries: vec![],
