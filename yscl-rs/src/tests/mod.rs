@@ -116,3 +116,49 @@ mod leading_digit {
         expect_success(src, &expected);
     }
 }
+
+mod multi_line_entry {
+    use super::*;
+
+    #[test]
+    fn wrong_eq() {
+        let src =
+            include_str!("sample_code/patterns_and_antipatterns/multi_line_entry/wrong_eq.yscl");
+        expect_unexpected_char_err(src, '\n');
+    }
+
+    #[test]
+    fn wrong_l_curly() {
+        let src = include_str!(
+            "sample_code/patterns_and_antipatterns/multi_line_entry/wrong_l_curly.yscl"
+        );
+        expect_unexpected_char_err(src, '\n');
+    }
+
+    #[test]
+    fn wrong_l_square() {
+        let src = include_str!(
+            "sample_code/patterns_and_antipatterns/multi_line_entry/wrong_l_square.yscl"
+        );
+        expect_unexpected_char_err(src, '\n');
+    }
+
+    #[test]
+    fn wrong_quote() {
+        let src =
+            include_str!("sample_code/patterns_and_antipatterns/multi_line_entry/wrong_quote.yscl");
+        expect_unexpected_char_err(src, '\n');
+    }
+
+    #[test]
+    fn right() {
+        let src = include_str!("sample_code/patterns_and_antipatterns/multi_line_entry/right.yscl");
+        let expected = yscl_node!({
+            foo = "bar",
+            lorem = {
+                ipsum = "dolor"
+            }
+        });
+        expect_success(src, &expected);
+    }
+}
