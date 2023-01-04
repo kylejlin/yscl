@@ -164,6 +164,13 @@ pub fn parse(src: &str) -> Result<Map, ParseError> {
                     }
                 }
                 c if is_identifier_char(c) => {
+                    // Entries must be on their own line.
+                    if pending_entry.key.is_empty()
+                        && remaining.non_whitespace_on_current_line() != 1
+                    {
+                        return Err(ParseError::UnexpectedChar(c, i));
+                    }
+
                     // Leading digits are forbidden.
                     if pending_entry.key.is_empty() && c.is_ascii_digit() {
                         return Err(ParseError::UnexpectedChar(c, i));

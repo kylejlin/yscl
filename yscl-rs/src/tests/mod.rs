@@ -185,7 +185,6 @@ mod multiple_elements_per_line {
 mod multiple_entries_per_line {
     use super::*;
 
-    #[ignore]
     #[test]
     fn wrong() {
         let src = include_str!(
