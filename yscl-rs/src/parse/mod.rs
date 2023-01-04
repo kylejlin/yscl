@@ -11,15 +11,21 @@ use unfinished::*;
 
 const REDUCE_SHOULD_SUCCEED_MSG: &str = "Reduce should never fail, since we only ever push a node to the stack when the item under it is ready for it.";
 
+/// Indices are counted in bytes, not chars.
+/// For example, the index of the "a" in `"Èa"` is
+/// 2, not 1, since "È" is 2 bytes long.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ParseError {
     /// The character and its byte position.
     UnexpectedChar(char, usize),
+    /// Unexpected end of input.
     UnexpectedEoi,
+    /// The key and its byte position.
     DuplicateKey(String, usize),
 }
 
-pub fn parse(src: &str) -> Result<Map, ParseError> {
+/// Parses a YSCL document.
+pub fn parse_doc(src: &str) -> Result<Map, ParseError> {
     let mut stack = vec![Unfinished::Map(UnfinishedMap {
         entries: vec![],
         pending_entry: UnfinishedMapEntry::empty(),

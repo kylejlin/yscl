@@ -9,6 +9,10 @@ pub enum Node {
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Atom {
+    /// This is the _value_ of the atom, not the _source_.
+    /// For example, the YSCL atom `"\""` will be represented
+    /// by the Rust expression `Atom { value: "\"".to_string() }`,
+    /// NOT `Atom { value: "\"\\\"\"".to_string() }`.
     pub value: String,
 }
 
@@ -28,6 +32,9 @@ pub struct MapEntry {
     pub value: Node,
 }
 
+/// A string consisting of one or more ASCII letters,
+/// digits, or underscores.
+/// The initial character may **not** be a digit.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Identifier(String);
 

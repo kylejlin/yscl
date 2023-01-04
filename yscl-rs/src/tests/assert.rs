@@ -40,7 +40,7 @@ const INDENT_INCREMENT: usize = 4;
 pub struct Pass;
 
 pub fn expect_success(src: &str, expected: &Node) -> Pass {
-    match parse(src) {
+    match parse_doc(src) {
         Ok(map) => {
             assert_node_eq(expected, &Node::Map(map));
             Pass
@@ -148,7 +148,7 @@ fn format(node: &Node) -> String {
 }
 
 pub fn expect_unexpected_char_err(src: &str, expected_c: char) -> Pass {
-    match parse(src) {
+    match parse_doc(src) {
         Ok(map) => {
             panic!(
                 "Expected error, but unexpectedly parsed successfully. Map:\n\n{}",
@@ -174,7 +174,7 @@ pub fn expect_unexpected_char_err(src: &str, expected_c: char) -> Pass {
 }
 
 pub fn expect_unexpected_eoi_err(src: &str) -> Pass {
-    match parse(src) {
+    match parse_doc(src) {
         Ok(map) => {
             panic!(
                 "Expected error, but unexpectedly parsed successfully. Map:\n\n{}",
@@ -187,7 +187,7 @@ pub fn expect_unexpected_eoi_err(src: &str) -> Pass {
 }
 
 pub fn expect_duplicate_key_char_err(src: &str, expected_key: &str) -> Pass {
-    match parse(src) {
+    match parse_doc(src) {
         Ok(map) => {
             panic!(
                 "Expected error, but unexpectedly parsed successfully. Map:\n\n{}",
