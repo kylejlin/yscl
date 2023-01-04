@@ -3,7 +3,7 @@
 /// ## Usage
 ///
 /// ```rust
-/// use yscl::*;
+/// use yscl::prelude::*;
 ///
 /// let atom = yscl_node!("hello");
 /// let atom_verbose = Node::Atom(Atom { value: "hello".to_string() });
@@ -15,7 +15,7 @@
 /// Maps
 ///
 /// ```rust
-/// # use yscl::*;
+/// # use yscl::prelude::*;
 /// let map = yscl_node!({
 ///     hello = "world",
 ///     this_is = "a map"
@@ -36,7 +36,7 @@
 /// Lists
 ///
 /// ```rust
-/// # use yscl::*;
+/// # use yscl::prelude::*;
 /// let list = yscl_node!([
 ///     "hello",
 ///     "world"
@@ -51,7 +51,7 @@
 /// Nested
 ///
 /// ```rust
-/// # use yscl::*;
+/// # use yscl::prelude::*;
 /// let complex = yscl_node!({
 ///     kantu_version = "1.0.0",
 ///     name = "fibonacci",
@@ -148,13 +148,13 @@
 #[macro_export]
 macro_rules! yscl_node {
     ($value:literal) => {{
-        use $crate::*;
+        use $crate::prelude::*;
         Node::Atom(Atom {
             value: $value.to_string(),
         })
     }};
     ({$($key:ident = $value:tt),*}) => {{
-        use $crate::*;
+        use $crate::prelude::*;
         Node::Map(Map {
             entries: vec![$(MapEntry {
                 key: Identifier::new(stringify!($key).to_string()).expect("Invalid identifier name"),
@@ -163,7 +163,7 @@ macro_rules! yscl_node {
         })
     }};
     ([$($element:tt),*]) => {{
-        use $crate::*;
+        use $crate::prelude::*;
         Node::List(List {
             elements: vec![$(yscl_node!($element)),*],
         })

@@ -1,11 +1,14 @@
 #[macro_use]
-mod macros;
+pub mod macros;
 
-mod parse;
-mod tree;
+pub mod parse;
+pub mod tree;
 
-pub use parse::*;
-pub use tree::*;
+pub mod prelude {
+    pub use crate::{macros::*, parse::*, tree::*};
+
+    pub use crate::yscl_node;
+}
 
 #[cfg(test)]
 mod tests;

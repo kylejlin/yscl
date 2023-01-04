@@ -28,7 +28,7 @@ pub enum ParseError {
 ///
 /// ## Example
 /// ```rust
-/// use yscl::*;
+/// use yscl::prelude::*;
 ///
 /// let map = parse_doc(r#"
 /// kantu_version = "1.0.0"
