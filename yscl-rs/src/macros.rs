@@ -1,4 +1,4 @@
-/// A macro to create a YSCL node.
+/// A macro for concisely constructing YSCL nodes.
 ///
 /// ## Examples
 ///
@@ -7,10 +7,14 @@
 /// use yscl::*;
 ///
 /// let atom = yscl_node!("hello");
-/// assert_eq!(atom, Node::Atom(Atom { value: "hello".to_string() }));
+/// let atom_verbose = Node::Atom(Atom { value: "hello".to_string() });
+/// assert_eq!(atom, atom_verbose);
 ///
-/// let map = yscl_node!({hello = "world", this_is = "a map"});
-/// assert_eq!(map, Node::Map(Map { entries: vec![
+/// let map = yscl_node!({
+///     hello = "world",
+///     this_is = "a map"
+/// });
+/// let map_verbose = Node::Map(Map { entries: vec![
 ///     MapEntry {
 ///         key: Identifier::new("hello".to_string()).unwrap(),
 ///         value: Node::Atom(Atom { value: "world".to_string() }),
@@ -19,13 +23,18 @@
 ///         key: Identifier::new("this_is".to_string()).unwrap(),
 ///         value: Node::Atom(Atom { value: "a map".to_string() }),
 ///     },
-/// ]}));
+/// ]});
+/// assert_eq!(map, map_verbose);
 ///
-/// let list = yscl_node!(["hello", "world"]);
-/// assert_eq!(list, Node::List(List { elements: vec![
+/// let list = yscl_node!([
+///     "hello",
+///     "world"
+/// ]);
+/// let list_verbose = Node::List(List { elements: vec![
 ///     Node::Atom(Atom { value: "hello".to_string() }),
 ///    Node::Atom(Atom { value: "world".to_string() }),
-/// ]}));
+/// ]});
+/// assert_eq!(list, list_verbose);
 ///
 /// let complex = yscl_node!({
 ///     kantu_version = "1.0.0",
@@ -53,6 +62,8 @@
 /// "#).unwrap();
 /// assert_eq!(complex, Node::Map(complex_expected));
 /// ```
+///
+/// Trailing commas are not supported.
 #[macro_export]
 macro_rules! yscl_node {
     ($value:literal) => {{
