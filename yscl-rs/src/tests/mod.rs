@@ -5,7 +5,7 @@ use assert::*;
 
 #[test]
 fn hello_world() {
-    let src = include_str!("sample_code/correct/hello_world.yscl");
+    let src = include_str!("sample_code/correct_misc/hello_world.yscl");
     let expected = yscl_node! ({
         kantu_version = "1.0.0",
         dependencies = {
