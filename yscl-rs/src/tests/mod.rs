@@ -29,5 +29,24 @@ fn hello_world() {
             "\u{263A}"
         ]
     });
-    expected_success(src, &expected);
+    expect_success(src, &expected);
+}
+
+mod code_comment_same_line {
+    use super::*;
+
+    #[test]
+    fn wrong() {
+        let src =
+            include_str!("sample_code/patterns_and_antipatterns/code_comment_same_line/wrong.yscl");
+        expect_unexpected_char_err(src, '/');
+    }
+
+    #[test]
+    fn right() {
+        let src =
+            include_str!("sample_code/patterns_and_antipatterns/code_comment_same_line/right.yscl");
+        let expected = yscl_node!({ foo = "bar" });
+        expect_success(src, &expected);
+    }
 }

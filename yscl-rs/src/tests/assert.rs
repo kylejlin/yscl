@@ -2,7 +2,7 @@ use super::*;
 
 const INDENT_INCREMENT: usize = 4;
 
-pub fn expected_success(src: &str, expected: &Node) {
+pub fn expect_success(src: &str, expected: &Node) {
     match parse(src) {
         Ok(map) => {
             assert_node_eq(expected, &Node::Map(map));
@@ -107,4 +107,17 @@ fn write_commonality(
 
 fn format(node: &Node) -> String {
     get_commonality(node, node)
+}
+
+pub fn expect_unexpected_char_err(src: &str, expected_c: char) {
+    match parse(src) {
+        Ok(map) => {
+            panic!(
+                "Expected error, but unexpectedly parsed successfully. Map:\n\n{}",
+                format(&Node::Map(map))
+            )
+        }
+        Err(ParseError::UnexpectedChar(actual_c, _)) => assert_eq!(expected_c, actual_c),
+        Err(err) => println!("Got a different error than expected: {:?}", err),
+    }
 }
