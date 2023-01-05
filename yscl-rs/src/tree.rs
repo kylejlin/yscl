@@ -89,7 +89,7 @@ impl<'a> NodeRef<'a> {
 }
 
 impl NodeRef<'_> {
-    pub fn cloned(self) -> Node {
+    pub fn to_owned(self) -> Node {
         match self {
             NodeRef::Atom(atom) => Node::Atom(atom.clone()),
             NodeRef::Map(map) => Node::Map(map.clone()),
