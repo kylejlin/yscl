@@ -88,6 +88,16 @@ impl<'a> NodeRef<'a> {
     }
 }
 
+impl NodeRef<'_> {
+    pub fn cloned(self) -> Node {
+        match self {
+            NodeRef::Atom(atom) => Node::Atom(atom.clone()),
+            NodeRef::Map(map) => Node::Map(map.clone()),
+            NodeRef::List(list) => Node::List(list.clone()),
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Atom {
     /// This is the _value_ of the atom, not the _source_.
